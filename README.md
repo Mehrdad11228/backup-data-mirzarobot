@@ -4,4 +4,4 @@
 ```bash
 git clone https://github.com/Mehrdad11228/backup-data-mirzarobot.git
 cd backup-data-mirzarobot
-./bachkupdatamirza.sh
+bash bachkupdatamirza.sh
