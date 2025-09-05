@@ -6,6 +6,8 @@ CYAN='\033[0;36m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # بدون رنگ
 
+SCRIPT_PATH="/usr/local/bin/mirza"
+
 while true; do
     clear
     echo -e "${CYAN}"
@@ -54,11 +56,8 @@ while true; do
             *) echo "Invalid option"; sleep 2; continue ;;
         esac
 
-        # ساخت فولدر /usr/local/bin/mirza اگر وجود نداشت
-        sudo mkdir -p /usr/local/bin/mirza
-
-        # ساختن فایل mirzadatabackup.sh
-        cat > mirzadatabackup.sh <<EOF
+        # ساخت فایل اسکریپت در مسیر /usr/local/bin/mirza
+        cat > "$SCRIPT_PATH" <<EOF
 #!/bin/bash
 ZIP_NAME="mirzadata_\$(date +%Y-%m-%d_%H-%M-%S).zip"
 
@@ -84,17 +83,13 @@ else
 fi
 EOF
 
-        chmod +x mirzadatabackup.sh
-
-        # کپی اسکریپت به /usr/local/bin/mirza/mirza
-        sudo cp mirzadatabackup.sh /usr/local/bin/mirza/mirza
-        sudo chmod +x /usr/local/bin/mirza/mirza
+        chmod +x "$SCRIPT_PATH"
 
         # اضافه کردن کرون‌جاب
-        (crontab -l 2>/dev/null; echo "$CRON_TIME /usr/local/bin/mirza/mirza") | crontab -
+        (crontab -l 2>/dev/null; echo "$CRON_TIME $SCRIPT_PATH") | crontab -
 
         # اجرای اولیه بلافاصله بعد نصب
-        /usr/local/bin/mirza/mirza
+        "$SCRIPT_PATH"
 
         echo -e "\nInstallation completed! First backup sent."
         sleep 3
@@ -102,23 +97,20 @@ EOF
 
     if [[ $option == 2 ]]; then
         clear
-        # حذف کرون‌جاب مربوط به mirza
-        crontab -l | grep -v "mirza/mirza" | crontab -
-        # حذف فایل‌ها و فولدر /usr/local/bin/mirza
-        sudo rm -rf /usr/local/bin/mirza
-        rm -f mirzadatabackup.sh .first_run_done
+        crontab -l | grep -v "$SCRIPT_PATH" | crontab -
+        rm -f "$SCRIPT_PATH" .first_run_done
         echo "Backup uninstalled!"
         sleep 3
     fi
 
     if [[ $option == 3 ]]; then
         clear
-        if [[ -f mirzadatabackup.sh ]]; then
+        if [[ -f "$SCRIPT_PATH" ]]; then
             echo "Running backup script..."
-            ./mirzadatabackup.sh
+            "$SCRIPT_PATH"
             echo "Backup sent manually."
         else
-            echo "mirzadatabackup.sh not found! Please install first."
+            echo "Script not found! Please install first."
         fi
         sleep 3
     fi
