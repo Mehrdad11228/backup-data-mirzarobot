@@ -6,7 +6,8 @@ CYAN='\033[0;36m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # بدون رنگ
 
-SCRIPT_PATH="/usr/local/bin/mirza"
+SCRIPT_PATH="/usr/local/bin/mirzadatabackup.sh"
+MENU_SCRIPT_PATH="/usr/local/bin/mirza"
 
 while true; do
     clear
@@ -30,34 +31,35 @@ while true; do
     echo -ne "${RED}Choose an option:${NC} "
     read option
 
-    if [[ $option == 1 ]]; then
-        clear
-        echo -ne "Enter your Bot Token: "
-        read BOT_TOKEN
-        clear
-        echo -ne "Enter your Chat ID: "
-        read CHAT_ID
-        clear
+    case $option in
+        1)
+            clear
+            echo -ne "Enter your Bot Token: "
+            read BOT_TOKEN
+            clear
+            echo -ne "Enter your Chat ID: "
+            read CHAT_ID
+            clear
 
-        echo -e "Choose backup interval:"
-        echo
-        echo -e "${RED}[1]${NC} Every minute"
-        echo -e "${RED}[2]${NC} Every 10 minutes"
-        echo -e "${RED}[3]${NC} Every hour"
-        echo
-        echo -ne "${RED}Your choice:${NC} "
-        read interval
-        clear
+            echo -e "Choose backup interval:"
+            echo
+            echo -e "${RED}[1]${NC} Every minute"
+            echo -e "${RED}[2]${NC} Every 10 minutes"
+            echo -e "${RED}[3]${NC} Every hour"
+            echo
+            echo -ne "${RED}Your choice:${NC} "
+            read interval
+            clear
 
-        case $interval in
-            1) CRON_TIME="* * * * *" ;;
-            2) CRON_TIME="*/10 * * * *" ;;
-            3) CRON_TIME="0 * * * *" ;;
-            *) echo "Invalid option"; sleep 2; continue ;;
-        esac
+            case $interval in
+                1) CRON_TIME="* * * * *" ;;
+                2) CRON_TIME="*/10 * * * *" ;;
+                3) CRON_TIME="0 * * * *" ;;
+                *) echo "Invalid option"; sleep 2; continue ;;
+            esac
 
-        # ساخت فایل اسکریپت در مسیر /usr/local/bin/mirza
-        cat > "$SCRIPT_PATH" <<EOF
+            # ساخت فایل اسکریپت اصلی
+            cat > "$SCRIPT_PATH" <<EOF
 #!/bin/bash
 ZIP_NAME="mirzadata_\$(date +%Y-%m-%d_%H-%M-%S).zip"
 
@@ -83,54 +85,55 @@ else
 fi
 EOF
 
-        chmod +x "$SCRIPT_PATH"
+            chmod +x "$SCRIPT_PATH"
 
-        # اضافه کردن کرون‌جاب
-        (crontab -l 2>/dev/null; echo "$CRON_TIME $SCRIPT_PATH") | crontab -
+            # اضافه کردن کرون‌جاب
+            (crontab -l 2>/dev/null; echo "$CRON_TIME $SCRIPT_PATH") | crontab -
 
-        # اجرای اولیه بلافاصله بعد نصب
-        "$SCRIPT_PATH"
-
-        echo -e "\nInstallation completed! First backup sent."
-        sleep 3
-    fi
-
-    if [[ $option == 2 ]]; then
-        clear
-        crontab -l | grep -v "$SCRIPT_PATH" | crontab -
-        rm -f "$SCRIPT_PATH" .first_run_done
-        echo "Backup uninstalled!"
-        sleep 3
-    fi
-
-    if [[ $option == 3 ]]; then
-        clear
-        if [[ -f "$SCRIPT_PATH" ]]; then
-            echo "Running backup script..."
+            # اجرای اولیه بلافاصله بعد نصب
             "$SCRIPT_PATH"
-            echo "Backup sent manually."
-        else
-            echo "Script not found! Please install first."
-        fi
-        sleep 3
-    fi
 
-    if [[ $option == 4 ]]; then
-        clear
-        echo "Exiting Backuper. Bye!"
-        exit 0
-    fi
-
-    if [[ $option == 5 ]]; then
-        clear
-        echo "Current crontab jobs:"
-        echo
-        crontab -l 2>/dev/null | grep -v '^#'
-        if [[ $? -ne 0 || -z "$(crontab -l 2>/dev/null | grep -v '^#')" ]]; then
-            echo "No cron jobs found."
-        fi
-        echo
-        echo "Press Enter to return..."
-        read
-    fi
+            echo -e "\nInstallation completed! First backup sent."
+            sleep 3
+            ;;
+        2)
+            clear
+            crontab -l | grep -v "$SCRIPT_PATH" | crontab -
+            rm -f "$SCRIPT_PATH" .first_run_done
+            echo "Backup uninstalled!"
+            sleep 3
+            ;;
+        3)
+            clear
+            if [[ -f "$SCRIPT_PATH" ]]; then
+                echo "Running backup script..."
+                "$SCRIPT_PATH"
+                echo "Backup sent manually."
+            else
+                echo "Backup script not installed yet! Please install first."
+            fi
+            sleep 3
+            ;;
+        4)
+            clear
+            echo "Exiting Backuper. Bye!"
+            exit 0
+            ;;
+        5)
+            clear
+            echo "Current crontab jobs:"
+            echo
+            crontab -l 2>/dev/null | grep -v '^#'
+            if [[ $? -ne 0 || -z "$(crontab -l 2>/dev/null | grep -v '^#')" ]]; then
+                echo "No cron jobs found."
+            fi
+            echo
+            echo "Press Enter to return..."
+            read
+            ;;
+        *)
+            echo "Invalid option, please try again."
+            sleep 2
+            ;;
+    esac
 done
