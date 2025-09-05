@@ -54,6 +54,9 @@ while true; do
             *) echo "Invalid option"; sleep 2; continue ;;
         esac
 
+        # ساخت فولدر /usr/local/bin/mirza اگر وجود نداشت
+        sudo mkdir -p /usr/local/bin/mirza
+
         # ساختن فایل mirzadatabackup.sh
         cat > mirzadatabackup.sh <<EOF
 #!/bin/bash
@@ -83,11 +86,15 @@ EOF
 
         chmod +x mirzadatabackup.sh
 
+        # کپی اسکریپت به /usr/local/bin/mirza/mirza
+        sudo cp mirzadatabackup.sh /usr/local/bin/mirza/mirza
+        sudo chmod +x /usr/local/bin/mirza/mirza
+
         # اضافه کردن کرون‌جاب
-        (crontab -l 2>/dev/null; echo "$CRON_TIME $(pwd)/mirzadatabackup.sh") | crontab -
+        (crontab -l 2>/dev/null; echo "$CRON_TIME /usr/local/bin/mirza/mirza") | crontab -
 
         # اجرای اولیه بلافاصله بعد نصب
-        ./mirzadatabackup.sh
+        /usr/local/bin/mirza/mirza
 
         echo -e "\nInstallation completed! First backup sent."
         sleep 3
@@ -95,7 +102,10 @@ EOF
 
     if [[ $option == 2 ]]; then
         clear
-        crontab -l | grep -v "mirzadatabackup.sh" | crontab -
+        # حذف کرون‌جاب مربوط به mirza
+        crontab -l | grep -v "mirza/mirza" | crontab -
+        # حذف فایل‌ها و فولدر /usr/local/bin/mirza
+        sudo rm -rf /usr/local/bin/mirza
         rm -f mirzadatabackup.sh .first_run_done
         echo "Backup uninstalled!"
         sleep 3
